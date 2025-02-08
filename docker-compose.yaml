@@ -1,13 +1,4 @@
 services:
-  app:
-    container_name: filmes_para_assistir_app
-    build:
-      context: .
-      dockerfile: Dockerfile
-    ports:
-      - '8080:8080'
-    volumes:
-      - .:/usr/src/app
   db:
     container_name: filmes_para_assistir_db
     image: postgres
@@ -20,6 +11,20 @@ services:
     environment:
       POSTGRES_USER: "root"
       POSTGRES_PASSWORD: "postgres"
+
+  app:
+    container_name: filmes_para_assistir_app
+    depends_on:
+      - db
+    build:
+      context: .
+      dockerfile: Dockerfile
+    ports:
+      - '8080:8080'
+    volumes:
+      - .:/usr/src/app
+    networks:
+      - db
 
 
 networks:
