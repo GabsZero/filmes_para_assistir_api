@@ -1,0 +1,27 @@
+services:
+  app:
+    container_name: filmes_para_assistir_app
+    build:
+      context: .
+      dockerfile: Dockerfile
+    ports:
+      - '8080:8080'
+    volumes:
+      - .:/usr/src/app
+  db:
+    container_name: filmes_para_assistir_db
+    image: postgres
+    restart: always
+    shm_size: 128mb
+    ports:
+      - "5332:5432"
+    networks:
+      - db
+    environment:
+      POSTGRES_USER: "root"
+      POSTGRES_PASSWORD: "postgres"
+
+
+networks:
+  db:
+    driver: bridge
