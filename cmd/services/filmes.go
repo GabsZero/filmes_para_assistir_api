@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"log"
+	"math"
 	"redfox-tech/assistir_filmes/cmd/database"
 	"strconv"
 	"strings"
@@ -28,6 +29,60 @@ type ErrorResponse struct {
 type NovoFilmeDto struct {
 	Nome   string `validate:"required" json:"nome" form:"nome"`
 	TipoID string `json:"tipoID" form:"tipoID"`
+}
+
+func GetFilmes(c *fiber.Ctx) error {
+	db := database.InitDB()
+
+	limitStr := c.Query("limit", "20")
+	offsetStr := c.Query("page", "1")
+
+	limit, _ := strconv.Atoi(limitStr)
+	offset, _ := strconv.Atoi(offsetStr)
+	page := offset
+
+	if offset == 1 {
+		offset = 0
+	} else {
+		offset = (offset - 1) * limit
+	}
+
+	filmes, err := db.ListFilmes(context.Background(), database.ListFilmesParams{
+		Offset: int32(offset),
+		Limit:  int32(limit),
+	})
+
+	if err != nil {
+		c.Status(500)
+		return c.JSON(JsonResponse{
+			Data:   nil,
+			Error:  "Não foi possível recuperar os filmes",
+			Status: 500,
+		})
+	}
+
+	total, _ := db.CountFilme(context.Background())
+	totalPages := 1
+	countingPages := float64(total) / float64(limit)
+
+	mathResult, _ := math.Modf(countingPages)
+
+	if mathResult > 0 {
+		totalPages = int(mathResult) + 1
+	}
+
+	result := make(map[string]interface{})
+	result["filmes"] = filmes
+	result["total"] = total
+	result["page"] = page
+	result["count_current_page"] = len(filmes)
+	result["total_pages"] = totalPages
+
+	return c.JSON(JsonResponse{
+		Data:   result,
+		Error:  "",
+		Status: 200,
+	})
 }
 
 func MarcarFilmeAssistido(c *fiber.Ctx) error {
