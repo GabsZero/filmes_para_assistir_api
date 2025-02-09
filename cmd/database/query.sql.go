@@ -98,17 +98,24 @@ func (q *Queries) ListFilmes(ctx context.Context) ([]Filme, error) {
 const updateFilme = `-- name: UpdateFilme :exec
 UPDATE filmes
   set nome = $2,
-  assistido = $3
+  tipo_id = $3,
+  assistido = $4
 WHERE id = $1
 `
 
 type UpdateFilmeParams struct {
 	ID        int64
 	Nome      string
+	TipoID    int64
 	Assistido bool
 }
 
 func (q *Queries) UpdateFilme(ctx context.Context, arg UpdateFilmeParams) error {
-	_, err := q.db.Exec(ctx, updateFilme, arg.ID, arg.Nome, arg.Assistido)
+	_, err := q.db.Exec(ctx, updateFilme,
+		arg.ID,
+		arg.Nome,
+		arg.TipoID,
+		arg.Assistido,
+	)
 	return err
 }

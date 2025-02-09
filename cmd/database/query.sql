@@ -17,7 +17,8 @@ RETURNING *;
 -- name: UpdateFilme :exec
 UPDATE filmes
   set nome = $2,
-  assistido = $3
+  tipo_id = $3,
+  assistido = $4
 WHERE id = $1;
 
 -- name: DeleteFilme :exec
