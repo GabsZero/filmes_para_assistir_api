@@ -1,6 +1,7 @@
 package services
 
 import (
+	"context"
 	"fmt"
 	"log"
 	"redfox-tech/assistir_filmes/cmd/database"
@@ -27,6 +28,47 @@ type ErrorResponse struct {
 type NovoFilmeDto struct {
 	Nome   string `validate:"required" json:"nome" form:"nome"`
 	TipoID string `json:"tipoID" form:"tipoID"`
+}
+
+func MarcarFilmeAssistido(c *fiber.Ctx) error {
+	filmeId := c.Params("filmeId")
+	filmeIdInt, err := strconv.Atoi(filmeId)
+
+	if err != nil {
+		c.Status(400)
+		return c.JSON(JsonResponse{
+			Data:   nil,
+			Error:  "ID do filme inválido",
+			Status: 400,
+		})
+	}
+
+	db := database.InitDB()
+
+	filme, err := db.GetFilme(context.Background(), int64(filmeIdInt))
+	if err != nil {
+		c.Status(404)
+		return c.JSON(JsonResponse{
+			Data:   nil,
+			Error:  "Filme não encontrado",
+			Status: 404,
+		})
+	}
+
+	filme.Assistido = true
+
+	db.UpdateFilme(context.Background(), database.UpdateFilmeParams{
+		ID:        filme.ID,
+		Nome:      filme.Nome,
+		TipoID:    filme.TipoID,
+		Assistido: filme.Assistido,
+	})
+
+	return c.JSON(JsonResponse{
+		Data:   filme,
+		Error:  "",
+		Status: 200,
+	})
 }
 
 func NovoFilme(c *fiber.Ctx) error {
