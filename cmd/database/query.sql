@@ -2,9 +2,14 @@
 SELECT * FROM filmes
 WHERE id = $1 LIMIT 1;
 
+-- name: CountFilme :one
+SELECT count(*) FROM filmes;
+
 -- name: ListFilmes :many
 SELECT * FROM filmes
-ORDER BY nome;
+ORDER BY nome
+OFFSET $1
+LIMIT $2;
 
 -- name: CreateFilme :one
 INSERT INTO filmes (

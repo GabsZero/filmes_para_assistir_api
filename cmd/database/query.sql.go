@@ -9,6 +9,17 @@ import (
 	"context"
 )
 
+const countFilme = `-- name: CountFilme :one
+SELECT count(*) FROM filmes
+`
+
+func (q *Queries) CountFilme(ctx context.Context) (int64, error) {
+	row := q.db.QueryRow(ctx, countFilme)
+	var count int64
+	err := row.Scan(&count)
+	return count, err
+}
+
 const createFilme = `-- name: CreateFilme :one
 INSERT INTO filmes (
   nome, tipo_id
@@ -67,10 +78,17 @@ func (q *Queries) GetFilme(ctx context.Context, id int64) (Filme, error) {
 const listFilmes = `-- name: ListFilmes :many
 SELECT id, nome, assistido, tipo_id, created_at FROM filmes
 ORDER BY nome
+OFFSET $1
+LIMIT $2
 `
 
-func (q *Queries) ListFilmes(ctx context.Context) ([]Filme, error) {
-	rows, err := q.db.Query(ctx, listFilmes)
+type ListFilmesParams struct {
+	Offset int32
+	Limit  int32
+}
+
+func (q *Queries) ListFilmes(ctx context.Context, arg ListFilmesParams) ([]Filme, error) {
+	rows, err := q.db.Query(ctx, listFilmes, arg.Offset, arg.Limit)
 	if err != nil {
 		return nil, err
 	}
