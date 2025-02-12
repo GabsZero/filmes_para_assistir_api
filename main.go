@@ -17,6 +17,7 @@ func main() {
 	app.Post("/filmes", services.NovoFilme)
 	app.Get("/filmes", services.GetFilmes)
 	app.Post("/filmes/assistido/:filmeId", services.MarcarFilmeAssistido)
+	app.Delete("/filmes/:filmeId", services.RemoverFilme)
 
 	app.Listen(":8080")
 }

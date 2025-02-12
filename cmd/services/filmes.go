@@ -85,6 +85,38 @@ func GetFilmes(c *fiber.Ctx) error {
 	})
 }
 
+func RemoverFilme(c *fiber.Ctx) error {
+	filmeId := c.Params("filmeId")
+	filmeIdInt, err := strconv.Atoi(filmeId)
+
+	if err != nil {
+		c.Status(400)
+		return c.JSON(JsonResponse{
+			Data:   nil,
+			Error:  "ID do filme inválido",
+			Status: 400,
+		})
+	}
+
+	db := database.InitDB()
+
+	erroAoGravar := db.DeleteFilme(context.Background(), int64(filmeIdInt))
+	if erroAoGravar != nil {
+		c.Status(404)
+		return c.JSON(JsonResponse{
+			Data:   nil,
+			Error:  "Filme não foi removido",
+			Status: 404,
+		})
+	}
+
+	return c.JSON(JsonResponse{
+		Data:   nil,
+		Error:  "",
+		Status: 200,
+	})
+}
+
 func MarcarFilmeAssistido(c *fiber.Ctx) error {
 	filmeId := c.Params("filmeId")
 	filmeIdInt, err := strconv.Atoi(filmeId)
