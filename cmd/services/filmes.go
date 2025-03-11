@@ -36,6 +36,9 @@ func GetFilmes(c *fiber.Ctx) error {
 
 	limitStr := c.Query("limit", "20")
 	offsetStr := c.Query("page", "1")
+	filtroAssistido := c.Query("assistido", "false")
+
+	assistido, _ := strconv.ParseBool(filtroAssistido)
 
 	limit, _ := strconv.Atoi(limitStr)
 	offset, _ := strconv.Atoi(offsetStr)
@@ -48,8 +51,9 @@ func GetFilmes(c *fiber.Ctx) error {
 	}
 
 	filmes, err := db.ListFilmes(context.Background(), database.ListFilmesParams{
-		Offset: int32(offset),
-		Limit:  int32(limit),
+		Assistido: assistido,
+		Offset:    int32(offset),
+		Limit:     int32(limit),
 	})
 
 	if err != nil {

@@ -77,18 +77,20 @@ func (q *Queries) GetFilme(ctx context.Context, id int64) (Filme, error) {
 
 const listFilmes = `-- name: ListFilmes :many
 SELECT id, nome, assistido, tipo_id, created_at FROM filmes
+WHERE assistido = $1 
 ORDER BY nome
-OFFSET $1
-LIMIT $2
+OFFSET $2
+LIMIT $3
 `
 
 type ListFilmesParams struct {
-	Offset int32
-	Limit  int32
+	Assistido bool
+	Offset    int32
+	Limit     int32
 }
 
 func (q *Queries) ListFilmes(ctx context.Context, arg ListFilmesParams) ([]Filme, error) {
-	rows, err := q.db.Query(ctx, listFilmes, arg.Offset, arg.Limit)
+	rows, err := q.db.Query(ctx, listFilmes, arg.Assistido, arg.Offset, arg.Limit)
 	if err != nil {
 		return nil, err
 	}

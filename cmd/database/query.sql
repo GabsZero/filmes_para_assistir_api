@@ -7,9 +7,10 @@ SELECT count(*) FROM filmes;
 
 -- name: ListFilmes :many
 SELECT * FROM filmes
+WHERE assistido = $1 
 ORDER BY nome
-OFFSET $1
-LIMIT $2;
+OFFSET $2
+LIMIT $3;
 
 -- name: CreateFilme :one
 INSERT INTO filmes (
