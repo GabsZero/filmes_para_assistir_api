@@ -16,6 +16,8 @@ services:
     container_name: filmes_para_assistir_app
     depends_on:
       - db
+    environment:
+      - GOOGLE_AI_API_KEY=${GOOGLE_AI_API_KEY}
     build:
       context: .
       dockerfile: Dockerfile
