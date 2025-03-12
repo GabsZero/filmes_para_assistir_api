@@ -6,9 +6,10 @@ WHERE id = $1 LIMIT 1;
 SELECT count(*) FROM filmes;
 
 -- name: ListFilmes :many
-SELECT * FROM filmes
+SELECT f.id, f.nome, f.assistido, t.nome as "tipo" FROM filmes f
+join tipos t on f.tipo_id = t.id
 WHERE assistido = $1 
-ORDER BY nome
+ORDER BY f.nome
 OFFSET $2
 LIMIT $3;
 
