@@ -76,9 +76,10 @@ func (q *Queries) GetFilme(ctx context.Context, id int64) (Filme, error) {
 }
 
 const listFilmes = `-- name: ListFilmes :many
-SELECT id, nome, assistido, tipo_id, created_at FROM filmes
+SELECT f.id, f.nome, f.assistido, t.nome as "tipo" FROM filmes f
+join tipos t on f.tipo_id = t.id
 WHERE assistido = $1 
-ORDER BY nome
+ORDER BY f.nome
 OFFSET $2
 LIMIT $3
 `
@@ -89,21 +90,27 @@ type ListFilmesParams struct {
 	Limit     int32
 }
 
-func (q *Queries) ListFilmes(ctx context.Context, arg ListFilmesParams) ([]Filme, error) {
+type ListFilmesRow struct {
+	ID        int64
+	Nome      string
+	Assistido bool
+	Tipo      string
+}
+
+func (q *Queries) ListFilmes(ctx context.Context, arg ListFilmesParams) ([]ListFilmesRow, error) {
 	rows, err := q.db.Query(ctx, listFilmes, arg.Assistido, arg.Offset, arg.Limit)
 	if err != nil {
 		return nil, err
 	}
 	defer rows.Close()
-	var items []Filme
+	var items []ListFilmesRow
 	for rows.Next() {
-		var i Filme
+		var i ListFilmesRow
 		if err := rows.Scan(
 			&i.ID,
 			&i.Nome,
 			&i.Assistido,
-			&i.TipoID,
-			&i.CreatedAt,
+			&i.Tipo,
 		); err != nil {
 			return nil, err
 		}
