@@ -2,15 +2,19 @@ package services
 
 import (
 	"context"
+	"encoding/json"
 	"fmt"
 	"log"
 	"math"
+	"os"
 	"redfox-tech/assistir_filmes/cmd/database"
 	"strconv"
 	"strings"
 
 	"github.com/go-playground/validator/v10"
 	"github.com/gofiber/fiber/v2"
+	"github.com/google/generative-ai-go/genai"
+	"google.golang.org/api/option"
 )
 
 type JsonResponse struct {
@@ -29,6 +33,60 @@ type ErrorResponse struct {
 type NovoFilmeDto struct {
 	Nome   string `validate:"required" json:"nome" form:"nome"`
 	TipoID string `json:"tipoID" form:"tipoID"`
+}
+
+type SugestaoFilmeDto struct {
+	Genero string `validate:"required" json:"genero" form:"genero"`
+}
+
+type FilmeSugerido struct {
+	Nome   string
+	Genero string
+	Tipo   string
+}
+
+func SugerirFilmes(c *fiber.Ctx) error {
+	ctx := context.Background()
+	sugestaoFilmeDto := SugestaoFilmeDto{}
+	c.BodyParser(&sugestaoFilmeDto)
+
+	fmt.Println(sugestaoFilmeDto)
+
+	// Access your API key as an environment variable
+	client, err := genai.NewClient(ctx, option.WithAPIKey(os.Getenv("GOOGLE_AI_API_KEY")))
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	defer client.Close()
+
+	model := client.GenerativeModel("gemini-1.5-pro-latest")
+	// Ask the model to respond with JSON.
+	model.ResponseMIMEType = "application/json"
+
+	prompt := fmt.Sprintf(`Sugira alguns filmes e séries populares com base no gênero %s e informe se é filme ou série no campo tipo usando o seguinte JSON schema:
+                   Filme = {'nome': string, 'genero': string, 'tipo': string}
+	           Return: Array<Filme>`, sugestaoFilmeDto.Genero)
+	resp, err := model.GenerateContent(ctx, genai.Text(prompt))
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	var sb strings.Builder
+	for _, part := range resp.Candidates[0].Content.Parts {
+		sb.WriteString(fmt.Sprintf("%v ", part)) // Se precisar de algo específico, adapte aqui
+	}
+
+	filmesSugeridos := []FilmeSugerido{}
+	fmt.Println(json.Unmarshal([]byte(sb.String()), &filmesSugeridos))
+
+	fmt.Println(filmesSugeridos)
+
+	return c.JSON(JsonResponse{
+		Data:   filmesSugeridos,
+		Error:  "",
+		Status: 200,
+	})
 }
 
 func GetFilmes(c *fiber.Ctx) error {
