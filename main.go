@@ -15,6 +15,7 @@ func main() {
 	app.Use(logger.New())
 
 	app.Post("/filmes", services.NovoFilme)
+	app.Post("/sugerir-filmes", services.SugerirFilmes)
 	app.Get("/filmes", services.GetFilmes)
 	app.Post("/filmes/assistido/:filmeId", services.MarcarFilmeAssistido)
 	app.Delete("/filmes/:filmeId", services.RemoverFilme)
